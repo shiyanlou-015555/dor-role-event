@@ -1,0 +1,66 @@
+\documentclass[12pt]{article}
+
+\title{Some findings during replication}
+\author{Liu Chengyuan}
+\date{\today}
+
+\usepackage{listings}
+\usepackage{hyperref}
+
+\begin{document}
+    \maketitle
+    \section{Brief View}
+    \subsection{Pre-Processing}
+    In the processing, document texts and their labels are extracted from the \emph{raw muc}.
+    We should keep:
+    \begin{itemize}
+        \item Indexes of Both \textbf{sentences from one `group of k' in one line}
+        and \textbf{list of sentences from one `group of k'}.
+        \item Indexes of Labels for each word.
+        \item Tokenized words.
+    \end{itemize}
+    Take continuous $k$ sentences in one paragraph for each training batch.
+    \subsection{Batchify data}
+    In this section, the main purpose is to pad the data to maximum length. Apply it to:
+    \begin{itemize}
+        \item Sentences from one `group of k' in one line, which means we pad each sentence to
+        the maximum length of \textbf{batch}.
+        \item Labels from one `group of k' in one line, same as the above description.
+        \item Pad to the maximum length of sentences in one group. It is considered as an optimization.
+    \end{itemize}
+    \subsection{Model}
+    About word embedding \ref{embedding}, LSTM \ref{lstm}, concat \ref{concat} and CRF \ref{crf}.
+    \subsubsection{Word Embedding}\label{embedding}
+    Both Glove and Bert are used in the embedding layer, which means we have word-self and
+    contextualized meanings. Because of Bert model, better use bert tokenize to get a good result.
+    \subsubsection{LSTM}\label{lstm}
+    LSTM requires same length data for each batch.\\
+    Pay attention to the usage of \emph{pack\_padded\_sequence}. Remember to do it on both of the two docs.
+    \subsubsection{Concat}\label{concat}
+    Although simple sum function is mentioned in the paper, the author only apply gate and sigmoid to
+    outputs of linear(lstm\_out).
+    \subsubsection{CRF}\label{crf}
+    Lets try \emph{pytorch-crf} package. It is supposed to excel hand-made crf.
+    \section{Details}
+    \begin{enumerate}
+        \item There is a scale factor in the embedding, which equals $\sqrt{\frac{embedding\_dim}{3}}$.
+        It's for the cases when word not find in the pre-trained embedding dict. We apply random vector range in $(-scale, scale)$.
+        \item Output of the \emph{pad\_packed\_sequence} is shaped like $(seq\_len, batch\_size, *)$.
+        There is a transpose with dropout layer.
+        \item If optimizer is set to `SGD', we apply dynamical learning rate to the model, which is $\frac{lr}{1 + epoch \times decacy\_rate}$.
+    \end{enumerate}
+    \section{Questions}
+    \begin{enumerate}
+        \item What does \emph{feature\_prefix} do?
+        \item There are extra empty data suffixed at the return Tensor of \emph{read\_instance}.
+    \end{enumerate}
+    \section{Optimization}
+    \begin{enumerate}
+        \item We have to match the tokens with roles one by one when using tokenized words.
+        A faster procession is expected when solved by KMP. 
+        \item For sentence level lstm, trying to take the whole paragraph as one batch,
+        instead of send them through LSTM layer sentence by sentence.
+        \item Remove some redundant arguments or variables.
+        \item Detailed Annotation.
+    \end{enumerate}
+\end{document}
