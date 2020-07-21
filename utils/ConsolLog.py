@@ -19,4 +19,3 @@ def Print(msg, msg_type='success'):
     else:
         msg = '\033[37m' + msg + '\033[0m'
     print(msg)
-        
