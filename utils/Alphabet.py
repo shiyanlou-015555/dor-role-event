@@ -1,6 +1,7 @@
 from ConsolLog import Print
 import json
 
+
 class Alphabet:
     """
     An alphabet api to word dictionary.
@@ -11,6 +12,7 @@ class Alphabet:
             Not necessary when it's sure that no unknown words during usage.
             Make it None then.
     """
+
     def __init__(self, name, unknown_label='</unk>'):
         self.word2idx = {}
         self.idx2word = {}
@@ -27,7 +29,7 @@ class Alphabet:
         if word in self.word2idx:
             if not ignore_existed_word:
                 Print('word ' + word + ' already exists in alphabet ' +
-                    self.name, 'warning')
+                      self.name, 'warning')
         else:
             self.word2idx[word] = self.word_size
             self.idx2word[self.word_size] = word

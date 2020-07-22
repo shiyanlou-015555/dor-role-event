@@ -107,7 +107,8 @@ class Reader:
                     new_sentence_idx = []   # for a sentence
                     # temprate variable to store current batch data
 
-                elif len(contents) == 1 and contents[0] == '':
+                elif len(contents) == 1 and contents[0] == ''\
+                    and len(new_batch_doc_idx) < self.config.parser['HP_max_len']:
                     doc_idx.append(new_batch_doc_idx)
                     sentence_list_idx.append(new_batch_sentence_list_idx)
                     tag_idx.append(new_batch_tag_idx)
