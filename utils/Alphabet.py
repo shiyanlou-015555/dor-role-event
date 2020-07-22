@@ -13,7 +13,7 @@ class Alphabet:
             Make it None then.
     """
 
-    def __init__(self, name, unknown_label='</unk>'):
+    def __init__(self, name, unknown_label='<UNK>'):
         self.word2idx = {}
         self.idx2word = {}
         self.name = name
