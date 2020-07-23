@@ -3,8 +3,8 @@ import torch.nn as nn
 import torchcrf
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-from embedding import Glove_Bert_Embedding
-from crf import CRF
+from model.embedding import Glove_Bert_Embedding
+from model.crf import CRF
 from utils.ConsolLog import Print
 from utils.Reader import Reader
 from utils.Alphabet import Alphabet
@@ -24,7 +24,7 @@ class RoleFiller(nn.Module):
 
     def __init__(self, reader):
         super(RoleFiller, self).__init__()
-        reader = Reader('')
+        # reader = Reader('')
         self.embedding = Glove_Bert_Embedding(
             reader.word_dict.word_size,
             reader.config.parser['word_embed_dim'],
@@ -45,7 +45,7 @@ class RoleFiller(nn.Module):
             self.hidden_dim //= 2
         # LSTM for paragraph level
         self.lstm_para = nn.LSTM(
-            input_size=self.embedding_dim,
+            self.embedding_dim,
             self.hidden_dim,
             reader.config.parser['HP_lstm_layers_num'],
             batch_first=True,
@@ -53,7 +53,7 @@ class RoleFiller(nn.Module):
         )
         # LSTM for sentence level
         self.lstm_sent = nn.LSTM(
-            input_size=self.embedding_dim,
+            self.embedding_dim,
             self.hidden_dim,
             reader.config.parser['HP_lstm_layers_num'],
             batch_first=True,

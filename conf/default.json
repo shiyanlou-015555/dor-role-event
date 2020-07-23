@@ -16,6 +16,7 @@
     "batch_size": 5,
     "HP_hidden_dim": 200,
     "HP_bilstm": true,
+    "HP_lstm_layers_num": 1,
     "HP_dropout": 0.4,
     "HP_learning_rate": 0.015,
     "HP_lr_decay": 0.05,

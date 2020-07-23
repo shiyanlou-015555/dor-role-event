@@ -67,7 +67,8 @@ class CRF(nn.Module):
             self.transitions.view(1, tag_size, tag_size).expand(
                 ins_num, tag_size, tag_size)
         # scores = scores.view(seq_len, batch_size, tag_size, tag_size)
-        score = scores.view(batch_size, seq_len, tag_size, tag_size)
+        scores = scores.view(
+            batch_size, seq_len, tag_size, tag_size).transpose(1, 0)
         # build iter
         seq_iter = enumerate(scores)
         # bat_size * from_target_size * to_target_size
@@ -133,7 +134,8 @@ class CRF(nn.Module):
         scores = feats + \
             self.transitions.view(1, tag_size, tag_size).expand(
                 ins_num, tag_size, tag_size)
-        scores = scores.view(seq_len, batch_size, tag_size, tag_size)
+        scores = scores.view(
+            batch_size, seq_len, tag_size, tag_size).transpose(1, 0)
 
         # build iter
         seq_iter = enumerate(scores)

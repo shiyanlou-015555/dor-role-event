@@ -1,4 +1,4 @@
-from ConsolLog import Print
+from utils.ConsolLog import Print
 import json
 
 

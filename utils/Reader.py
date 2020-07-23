@@ -1,8 +1,8 @@
 import numpy as np
 import tqdm
-from Alphabet import Alphabet
-from ConsolLog import Print
-from Config import Configuration
+from utils.Alphabet import Alphabet
+from utils.ConsolLog import Print
+from utils.Config import Configuration
 
 
 class Reader:

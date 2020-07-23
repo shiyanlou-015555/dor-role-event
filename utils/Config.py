@@ -1,6 +1,6 @@
 import argparse
 import json
-from ConsolLog import Print
+from utils.ConsolLog import Print
 
 
 class Configuration:
