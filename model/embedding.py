@@ -16,7 +16,7 @@ class Glove_Bert_Embedding(nn.Module):
         idx2word: word dictionary in `Reader`.
     """
 
-    def __init__(self, input_size, embed_dim, dropout_prob, pre_build_embedding, idx2word):
+    def __init__(self, input_size, embed_dim, dropout_prob, pre_build_embedding, idx2word, bert_dir):
         super(Glove_Bert_Embedding, self).__init__()
         self.input_size, self.embed_dim =\
             input_size, embed_dim
@@ -25,7 +25,9 @@ class Glove_Bert_Embedding(nn.Module):
         self.dropout = nn.Dropout(dropout_prob)
 
         Print('Building Bert model...', 'information')
-        self.bert_model = BertModel.from_pretrained('bert-base-uncased')
+        # self.bert_model = BertModel.from_pretrained('bert-base-uncased')
+        with open(bert_dir, 'rb') as f:
+            self.bert_model = torch.load(f)
         self.bert_model.eval()
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
@@ -48,10 +50,10 @@ class Glove_Bert_Embedding(nn.Module):
                 else:
                     tmp.append(self.idx2word[0])
                 # use bert to get ids of tokens
-            out.append(self.tokenizer.convert_ids_to_tokens(tmp))
+            out.append(self.tokenizer.convert_tokens_to_ids(tmp))
         out = torch.tensor(out)
         with torch.no_grad():
-            encoded_layers, _ = self.bert_model(tokens_tensor_batch)
+            encoded_layers, _ = self.bert_model(out)
         # encoded layers is a list of whole bert layer outputs
         # we need the average layer outputs
         return sum(encoded_layers) / len(encoded_layers)

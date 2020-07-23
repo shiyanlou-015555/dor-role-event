@@ -7,6 +7,9 @@
     "embed_dir": "sources/glove.6B.100d.txt",
     "model_dir": "sources/model.pkl",
     "alphabet_dir": "sources/",
+
+    "embedding_save_dir": "sources/embed.pickle",
+
     "norm_word_embed": false,
     "norm_char_embed": false,
     "word_embed_dim": 100,

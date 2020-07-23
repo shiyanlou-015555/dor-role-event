@@ -1,9 +1,10 @@
 import numpy as np
 import tqdm
+import json
 from utils.Alphabet import Alphabet
 from utils.ConsolLog import Print
 from utils.Config import Configuration
-
+import pickle
 
 class Reader:
     """
@@ -110,41 +111,70 @@ class Reader:
 
                 elif len(contents) == 1 and contents[0] == ''\
                     and len(new_batch_doc_idx) < self.config.parser['HP_max_len']:
+
+                    # Sometimes a sentence is not terminated by `.`
+                    # It will cause bug without this judgement.
+                    if len(new_sentence_idx) > 0:
+                        new_batch_sentence_list_idx.append(new_sentence_idx)
+                        new_sentence_idx = []
                     doc_idx.append(new_batch_doc_idx)
                     sentence_list_idx.append(new_batch_sentence_list_idx)
                     tag_idx.append(new_batch_tag_idx)
 
         return doc_idx, sentence_list_idx, tag_idx
 
-    def build_pre_embedding(self):
+    def build_pre_embedding(self, use_saved_embed=False):
         """
         Build word embedding from pre-trained Glove model by default.
         For the word not in pre-trained Glove model,
         we apply random vector to represent the embedding.
 
         This should be after building word dictionary.
+
+        If there is `embedding_save_dir` in configuration json file,
+        Just read embedding from it.
         """
-        if self.config.parser['embed_dir'] is None:
-            Print('Pre-trained embedding file not available.', 'error')
-            return
 
-        embed_file = self.config.parser['embed_dir']
+        if use_saved_embed and\
+            self.config.parser['embedding_save_dir'] is not '':
+            Print(
+                f'reading saved embedding file from '\
+                f'{self.config.parser["embedding_save_dir"]}',
+                'information'
+            )
+            with open(self.config.parser['embedding_save_dir'], 'rb') as f:
+                pretrain_embed = pickle.load(f)
+        else:
+            if self.config.parser['embed_dir'] is None:
+                Print('Pre-trained embedding file not available.', 'error')
+                return
 
-        # load in pre-trained Glove model, save it as a dict
-        pretrain_embed = {}
-        with open(embed_file, 'r', encoding='utf-8') as f:
-            tqdm_iter = tqdm.tqdm(f.readlines())
-            tqdm_iter.set_description('read from pre-trained file', False)
-            for line in tqdm_iter:
-                embed_content = line.strip().split()
-                word, embed_content = embed_content[0], embed_content[1:]
-                if self.config.parser['word_embed_dim'] < 0:
-                    self.config.parser['word_embed_dim'] = len(embed_content)
-                elif self.config.parser['word_embed_dim'] != len(embed_content):
-                    # invalid embedding word
-                    continue
-                embed_content = np.array([float(x) for x in embed_content])
-                pretrain_embed[word] = embed_content
+            embed_file = self.config.parser['embed_dir']
+
+            # load in pre-trained Glove model, save it as a dict
+            pretrain_embed = {}
+            with open(embed_file, 'r', encoding='utf-8') as f:
+                tqdm_iter = tqdm.tqdm(f.readlines())
+                tqdm_iter.set_description('read from pre-trained file', False)
+                for line in tqdm_iter:
+                    embed_content = line.strip().split()
+                    word, embed_content = embed_content[0], embed_content[1:]
+                    if self.config.parser['word_embed_dim'] < 0:
+                        self.config.parser['word_embed_dim'] = len(embed_content)
+                    elif self.config.parser['word_embed_dim'] != len(embed_content):
+                        # invalid embedding word
+                        continue
+                    embed_content = np.array([float(x) for x in embed_content])
+                    pretrain_embed[word] = embed_content
+            
+            if self.config.parser['embedding_save_dir'] is not '':
+                with open(self.config.parser['embedding_save_dir'], 'wb') as f:
+                    pickle.dump(pretrain_embed, f)
+                Print(
+                    f'pre-trained embedding dictionary is saved at '\
+                    f'{self.config.parser["embedding_save_dir"]}',
+                    'success'
+                )
 
         embed_dim = self.config.parser['word_embed_dim']
 
@@ -170,9 +200,9 @@ class Reader:
                                :] = np.random.uniform(-scale, scale, [embed_dim])
                 not_match += 1
         Print(
-            f'Pre-trained embedding loaded in from {embed_file}, '\
-            f'pre-train words: {len(pretrain_embed)}, perfect match {perfect_match}, '\
-            f'case match {case_match}, not match {not_match}, '\
+            f'Pre-trained embedding loaded in from {self.config.parser["embed_dir"]},\n'\
+            f'pre-train words: {len(pretrain_embed)}, perfect match {perfect_match},\n'\
+            f'case match {case_match}, not match {not_match},\n'\
             f'oov {not_match / self.word_dict.word_size}', 'success'
         )
         return self.embedding

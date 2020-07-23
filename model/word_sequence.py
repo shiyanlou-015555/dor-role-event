@@ -29,11 +29,12 @@ class RoleFiller(nn.Module):
             reader.word_dict.word_size,
             reader.config.parser['word_embed_dim'],
             reader.config.parser['HP_dropout'],
-            reader.build_pre_embedding(),
-            reader.word_dict.idx2word
+            reader.build_pre_embedding(use_saved_embed=True),
+            reader.word_dict.idx2word,
+            reader.config.parser['bert_dir']
         )
-        self.drop_lstm_sent = reader.config.parser['HP_dropout'] - 0.1
-        self.drop_lstm_para = reader.config.parser['HP_dropout']
+        self.drop_lstm_sent = nn.Dropout(reader.config.parser['HP_dropout'] - 0.1)
+        self.drop_lstm_para = nn.Dropout(reader.config.parser['HP_dropout'])
         self.batch_average = reader.config.parser['batch_average']
 
         self.embedding_dim = reader.config.parser['word_embed_dim'] + 768
@@ -86,7 +87,7 @@ class RoleFiller(nn.Module):
         """
         sentence_tensor = self.embedding(sentence.view(1, -1))
         # sentence: [1, sentence len, embedding dim]
-        sentence = pack_padded_sequence(sentence_tensor,
+        sentence_tensor = pack_padded_sequence(sentence_tensor,
                                         lengths=[sentence_tensor.shape[1]], batch_first=True)
         hidden = None
         sentence_tensor, hidden = self.lstm_sent(sentence_tensor, hidden)
@@ -95,13 +96,14 @@ class RoleFiller(nn.Module):
         # sentence_tensor: [1, sentence len, hidden dim]
         return self.drop_lstm_sent(sentence_tensor)
 
-    def forward(self, inputs_sent, inputs_para, lengths, batch_labels):
+    def forward(self, inputs_sent, inputs_para, lengths, batch_labels, mask):
         r"""
         Args:
             inputs_sent: [batch size, k(which equals 3), sentence len]
             inputs_para: [batch size, k X max_len]
             lengths: list of sequences length
             batch_labels: labels coordinate with inputs_para.
+            mask: mask tensor.
         Return:
             loss: loss value.
             tag_sequence: best tag-sequence.
@@ -136,7 +138,7 @@ class RoleFiller(nn.Module):
         
         # crf
         loss = self.crf.neg_log_likelihood_loss(gamma, mask, batch_labels)
-        scores, tag_seq = self.crf._viterbi_decode(outs, mask)
+        scores, tag_seq = self.crf._viterbi_decode(gamma, mask)
         if self.batch_average:
             loss /= gamma.shape[0]
         return loss, tag_seq

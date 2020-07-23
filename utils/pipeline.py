@@ -36,7 +36,7 @@ def batchify_generation(batch_doc_seq, batch_sentence_list, batch_tag_seq, if_tr
         (batch_size, max_seq_len), requires_grad=if_train).long()
 
     seq_mask = torch.zeros((batch_size, max_seq_len),
-                           requires_grad=if_train).byte()
+                           requires_grad=if_train).bool()
     for idx, (doc, tag, seq_len) in enumerate(zip(batch_doc_seq, batch_tag_seq, word_seq_len)):
         this_seq_len = seq_len.item()
         word_seq_tensor[idx, :this_seq_len] = torch.LongTensor(doc)
@@ -55,7 +55,7 @@ def batchify_generation(batch_doc_seq, batch_sentence_list, batch_tag_seq, if_tr
     sentence_tensor_list = []
     for sentences in batch_sentence_list:
         k_group_list = [
-            torch.LongTensor(sentence, requires_grad=if_train) for sentence in sentences
+            torch.LongTensor(sentence) for sentence in sentences
         ]
         sentence_tensor_list.append(k_group_list)
     sentence_tensor_list = [sentence_tensor_list[idx]
