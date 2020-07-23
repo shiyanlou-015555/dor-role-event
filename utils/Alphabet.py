@@ -1,5 +1,6 @@
-from ConsolLog import Print
+from utils.ConsolLog import Print
 import json
+
 
 class Alphabet:
     """
@@ -11,7 +12,8 @@ class Alphabet:
             Not necessary when it's sure that no unknown words during usage.
             Make it None then.
     """
-    def __init__(self, name, unknown_label='</unk>'):
+
+    def __init__(self, name, unknown_label='[UNK]'):
         self.word2idx = {}
         self.idx2word = {}
         self.name = name
@@ -27,7 +29,7 @@ class Alphabet:
         if word in self.word2idx:
             if not ignore_existed_word:
                 Print('word ' + word + ' already exists in alphabet ' +
-                    self.name, 'warning')
+                      self.name, 'warning')
         else:
             self.word2idx[word] = self.word_size
             self.idx2word[self.word_size] = word

@@ -1,11 +1,13 @@
 import argparse
 import json
-from ConsolLog import Print
+from utils.ConsolLog import Print
+
 
 class Configuration:
     """
     Trying to build a high API for settings of training procedure.
     """
+
     def __init__(self, parser, config_file):
         self.parser = None
         if parser:
@@ -19,7 +21,7 @@ class Configuration:
                 self.load_from_json_file(config_file)
             else:
                 Print('But no files founded!', 'warning')
-    
+
     def load_from_json_file(self, config_file):
         r"""
         load configuration from json.
@@ -29,7 +31,7 @@ class Configuration:
             return
         with open(config_file, 'r') as f:
             self.parser = json.load(f)
-    
+
     def save_to_json_file(self, config_file):
         r"""
         Save configuration as json.
@@ -39,7 +41,7 @@ class Configuration:
             return
         with open(config_file, 'w') as f:
             json.dump(vars(self.parser.parse_args()), f)
-    
+
     def __repr__(self):
         Print('Configuration settings:', 'information')
         Print('--------------------------------', 'information')
@@ -52,7 +54,8 @@ class Configuration:
 # run `generate_conf_json` to generate configuration file for convienet usage
 
 def generate_conf_json():
-    parser = argparse.ArgumentParser(description='Configuration for training settings')
+    parser = argparse.ArgumentParser(
+        description='Configuration for training settings')
     parser.add_argument('--config', default='conf/default.json')
     parser.add_argument('--train_dir', default='data/formed/train_full')
     parser.add_argument('--dev_dir', default='data/formed/dev_full')
@@ -76,6 +79,7 @@ def generate_conf_json():
     parser.add_argument('--HP_max_len', default=200)
 
     my_conf = Configuration(parser, 'conf/default.json')
+
 
 if __name__ == '__main__':
     # generate_conf_json()
