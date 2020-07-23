@@ -22,6 +22,9 @@ if __name__ == "__main__":
     os.chdir('my_rep')
 
     reader = Reader('conf/default.json')
+    for file_type in ['train', 'test', 'dev']:
+        reader.build_word_dict(file_type)
+    
     # training model
     model = RoleFiller(reader)
-    train(reader)
+    train(reader, model)

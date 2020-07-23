@@ -49,6 +49,7 @@ class Reader:
                 if len(contents) >= 2:
                     word, _ = contents[0], contents[1]
                     self.word_dict.add_word(word)
+        Print(f'word dict from {file_name} is added', 'success')
 
     def read_from_file(self, file_type):
         """
@@ -170,9 +171,9 @@ class Reader:
                 not_match += 1
         Print(
             f'Pre-trained embedding loaded in from {embed_file}, '\
-            'pre-train words: {len(pretrain_embed)}, perfect match {perfect_match}, '\
-            'case match {case_match}, not match {not_match}, '\
-            'oov {not_match / self.word_dict.word_size}', 'success'
+            f'pre-train words: {len(pretrain_embed)}, perfect match {perfect_match}, '\
+            f'case match {case_match}, not match {not_match}, '\
+            f'oov {not_match / self.word_dict.word_size}', 'success'
         )
         return self.embedding
 

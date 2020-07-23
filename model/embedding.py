@@ -24,6 +24,7 @@ class Glove_Bert_Embedding(nn.Module):
         self.embedding.weight.data.copy_(torch.from_numpy(pre_build_embedding))
         self.dropout = nn.Dropout(dropout_prob)
 
+        Print('Building Bert model...', 'information')
         self.bert_model = BertModel.from_pretrained('bert-base-uncased')
         self.bert_model.eval()
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
