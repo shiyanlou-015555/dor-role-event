@@ -34,6 +34,7 @@ class RoleFiller(nn.Module):
         )
         self.drop_lstm_sent = reader.config.parser['HP_dropout'] - 0.1
         self.drop_lstm_para = reader.config.parser['HP_dropout']
+        self.batch_average = reader.config.parser['batch_average']
 
         self.embedding_dim = reader.config.parser['word_embed_dim'] + 768
         # 768 is set to be the statical bert dimension
@@ -68,7 +69,7 @@ class RoleFiller(nn.Module):
 
         self.hidden2tag = nn.Linear(
             reader.config.parser['HP_hidden_dim'],
-            reader.tag_dict.word_size
+            reader.tag_dict.word_size + 2
         )
         self.softmax = nn.Softmax(dim=-1)
 
@@ -94,11 +95,16 @@ class RoleFiller(nn.Module):
         # sentence_tensor: [1, sentence len, hidden dim]
         return self.drop_lstm_sent(sentence_tensor)
 
-    def forward(self, inputs_sent, inputs_para, lengths):
+    def forward(self, inputs_sent, inputs_para, lengths, batch_labels):
         r"""
         Args:
             inputs_sent: [batch size, k(which equals 3), sentence len]
             inputs_para: [batch size, k X max_len]
+            lengths: list of sequences length
+            batch_labels: labels coordinate with inputs_para.
+        Return:
+            loss: loss value.
+            tag_sequence: best tag-sequence.
         """
         # process paragraph level embedding and lstm
         para_tensor = self.embedding(inputs_para)
@@ -127,5 +133,12 @@ class RoleFiller(nn.Module):
         # gamma: [batch size, max len, hidden dim]
         gamma = self.hidden2tag(gamma * sent_tensor + (1 - gamma) * para_tensor)
         # gamma: [batch size, max len, tag num]
+        
+        # crf
+        loss = self.crf.neg_log_likelihood_loss(gamma, mask, batch_labels)
+        scores, tag_seq = self.crf._viterbi_decode(outs, mask)
+        if self.batch_average:
+            loss /= gamma.shape[0]
+        return loss, tag_seq
 
         
